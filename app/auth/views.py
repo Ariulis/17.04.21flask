@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, request
 from flask_login import current_user, login_user, logout_user, login_required
 
 from . import auth
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm, ResetPasswordForm, ResetPasswordRequestForm, ChangePasswordForm
 from .. import db
 from ..models import User
 from ..email import send_email
@@ -99,3 +99,54 @@ def resend_confirmation():
     )
     flash('A new confirmation email has been sent to you.', 'info')
     return redirect(url_for('auth.unconfirmed'))
+
+
+@auth.route('/reset-password', methods=['GET', 'POST'])
+def reset_password_request():
+    if not current_user.is_anonymous:
+        return redirect(url_for('main.index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(
+            email=form.email.data.lower()).first_or_404()
+        token = user.generate_reset_token()
+        send_email(
+            user.email,
+            'Reset password',
+            'auth/email/reset_password',
+            user=user,
+            token=token
+        )
+        flash('An email with instructions to reset password has been sent to you.', 'info')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password.html', form=form)
+
+
+@auth.route('/reset_password/<token>', methods=['GET', 'POST'])
+def password_reset(token):
+    if not current_user.is_anonymous:
+        return redirect(url_for('main.index'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        if User.reset_password(token, form.password.data):
+            db.session.commit()
+            flash('Your password has been changed.', 'success')
+        else:
+            flash('Invalid request.', 'warning')
+        return redirect(url_for('auth.login'))
+    return render_template('auth/reset_password.html', form=form)
+
+
+@auth.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if current_user.verify_password(form.password.data):
+            current_user.password = form.new_password.data
+            db.session.add(current_user)
+            db.session.commit()
+            flash('Your password has been changed.', 'info')
+            return redirect(request.args.get('next') or url_for('main.index'))
+        flash('Incorrect password.', 'warning')
+    return render_template('auth/change_password.html', form=form)

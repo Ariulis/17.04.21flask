@@ -15,7 +15,8 @@ main {
   padding: 15px;
 }
 h1,
-h2 {
+h2,
+.alert {
   text-align: center;
 }
 .page-preloader {

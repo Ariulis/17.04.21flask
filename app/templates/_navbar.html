@@ -16,13 +16,14 @@
                         <a class="nav-link" href="/admin">Admin panel</a>
                     </li>
                 {% endif %}
-                <li class="nav-item dropdown">
+                {% set dropdown_active_list = ['/auth/change-password'] %}
+                <li class="nav-item dropdown {% if request.path in dropdown_active_list %}active{% endif %}">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                         Account
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="#">Change password</a>
+                        <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">Change password</a>
                         <a class="dropdown-item" href="#">Change email</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="#">Profile</a>
