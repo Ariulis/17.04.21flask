@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as macros %}
+
+{% block title %}
+    {{ super() }} - Log In
+{% endblock title %}
+
+{% block content %}
+    <h1>Log In</h1>
+    <hr>
+    <div class="row justify-content-center">
+        <div class="col-6">
+            {{ macros.forms(form) }}
+            <p>New user?</p>
+            <p><a href="{{ url_for('auth.register') }}" class="badge badge-info">Click for registration</a></p>
+            <p>Forgot password?</p>
+            <p><a href="" class="badge badge-success">Click for reset password</a></p>
+        </div>
+    </div>
+{% endblock content %}
