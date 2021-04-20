@@ -1,4 +1,5 @@
 from datetime import datetime
+from hashlib import md5
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
@@ -27,8 +28,12 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(64), index=True)
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
+    name = db.Column(db.String(32))
+    location = db.Column(db.String(32))
+    about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime, default=datetime.now)
     last_seen = db.Column(db.DateTime, default=datetime.now)
+    avatar_hash = db.Column(db.String(32))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     def __init__(self, **kwargs):
@@ -39,6 +44,43 @@ class User(UserMixin, db.Model):
                 self.confirmed = True
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+        if self.email is not None and self.avatar_hash is None:
+            self.gravatar_hash()
+
+    # Gravatar
+
+    def gravatar_hash(self):
+        return md5(self.email.encode('utf-8')).hexdigest()
+
+    def gravatar(self, size=100, default='indenticon', rating='g'):
+        url = 'https://secure.gravatar.com/avatar'
+        hash = self.avatar_hash or self.gravatar_hash()
+        return f'{url}/{hash}?s={size}&d={default}&r={rating}'
+
+    # Generate change email token
+
+    def generate_change_email_token(self, new_email, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'change_email': self.id, 'new_email': new_email}).decode('utf-8')
+
+    def change_email(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token.encode('utf-8'))
+        except:
+            return False
+        if data.get('change_email') != self.id:
+            return False
+        new_email = data.get('new_email')
+        if new_email is None:
+            return False
+        if self.query.filter_by(email=new_email).first():
+            return False
+        self.email = new_email
+        self.avatar_hash = self.gravatar_hash()
+        db.session.add(self)
+        return True
+
     # Generate reset password token
 
     def generate_reset_token(self, expiration=3600):

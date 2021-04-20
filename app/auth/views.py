@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, request
 from flask_login import current_user, login_user, logout_user, login_required
 
 from . import auth
-from .forms import LoginForm, RegistrationForm, ResetPasswordForm, ResetPasswordRequestForm, ChangePasswordForm
+from .forms import LoginForm, RegistrationForm, ResetPasswordForm, ResetPasswordRequestForm, ChangePasswordForm, ChangeEmailForm
 from .. import db
 from ..models import User
 from ..email import send_email
@@ -150,3 +150,36 @@ def change_password():
             return redirect(request.args.get('next') or url_for('main.index'))
         flash('Incorrect password.', 'warning')
     return render_template('auth/change_password.html', form=form)
+
+
+@auth.route('/change-email', methods=['GET', 'POST'])
+@login_required
+def change_email_request():
+    form = ChangeEmailForm()
+    if form.validate_on_submit():
+        if current_user.verify_password(form.password.data):
+            new_email = form.email.data.lower()
+            token = current_user.generate_change_email_token(new_email)
+            send_email(
+                new_email,
+                'Confirm your new email',
+                'auth/email/change_email',
+                user=current_user,
+                token=token
+            )
+            flash(
+                'An email with instructions to change email has been sent to you.', 'info')
+            return redirect(request.args.get('next') or url_for('main.index'))
+        flash('Incorrect password.', 'warning')
+    return render_template('auth/change_email.html', form=form)
+
+
+@auth.route('/change-email/<token>')
+@login_required
+def change_email(token):
+    if current_user.change_email(token):
+        db.session.commit()
+        flash('Your email has been changed.', 'success')
+    else:
+        flash('Invalid request.', 'danger')
+    return redirect(url_for('main.index'))
