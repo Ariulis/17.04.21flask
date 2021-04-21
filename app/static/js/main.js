@@ -9,6 +9,13 @@ const bootstrapColors = [
   "light",
   "dark",
 ];
+const postForm = document.querySelector(".index-page .form");
+const addPostButton = document.querySelector(".add-post-btn");
+
+addPostButton.addEventListener("click", function () {
+  this.style.display = "none";
+  postForm.style.display = "block";
+});
 
 preloader
   .querySelector(".spinner-border")

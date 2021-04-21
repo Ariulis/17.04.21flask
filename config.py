@@ -21,6 +21,8 @@ class Config:
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
 
+    POSTS_PER_PAGE = 3
+
     @staticmethod
     def init_app(app):
         pass

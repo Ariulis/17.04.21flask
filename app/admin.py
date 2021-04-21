@@ -19,3 +19,7 @@ class HomeAdminView(AdminMixin):
 
 class UserAdminView(ModelView):
     form_columns = ['username', 'email', 'confirmed', 'role', 'member_since']
+
+
+class PostAdminView(ModelView):
+    form_columns = ['body', 'timestamp', 'author']

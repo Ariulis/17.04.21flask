@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 
 from config import config
-from .admin import HomeAdminView, UserAdminView
+from .admin import HomeAdminView, UserAdminView, PostAdminView
 
 
 db = SQLAlchemy()
@@ -29,10 +29,10 @@ def create_app(config_name):
 
     # Admin
 
-    from .models import User
+    from .models import User, Post
 
     admin = Admin(app, 'FlaskyApp', url='/', index_view=HomeAdminView())
-    admin.add_views(UserAdminView(User, db.session))
+    admin.add_views(UserAdminView(User, db.session), PostAdminView(Post, db.session))
 
     # Blueprints
 

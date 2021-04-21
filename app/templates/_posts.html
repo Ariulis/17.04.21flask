@@ -1,0 +1,14 @@
+{% if posts %}
+    {% for post in posts %}
+        <div class="card mb-2">
+            <div class="card-header">
+                <img src="{{ post.author.gravatar(size=30) }}" alt="author avatar">
+                <a href="{{ url_for('main.user', username=post.author.username) }}">{{ post.author.username }}</a>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">{{ post.body | safe }}</li>
+                <li class="list-group-item"><a href="" class="badge badge-primary">Permalink</a></li>
+            </ul>
+        </div>
+    {% endfor %}
+{% endif %}

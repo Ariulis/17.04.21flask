@@ -1,16 +1,30 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, current_app
 from flask_login import login_required, current_user
 
 from . import main
-from .forms import EditProfileForm, EditAdminProfileForm
+from .forms import EditProfileForm, EditAdminProfileForm, PostForm
 from .. import db
-from ..models import User, Role
+from ..models import User, Role, Post, Permission
 from ..decorators import admin_required
 
 
-@main.route('/')
+@main.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    page = request.args.get('page', 1, type=int)
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config['POSTS_PER_PAGE']
+    )
+    posts = pagination.items
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(
+            body=form.body.data,
+            author=current_user._get_current_object()
+        )
+        db.session.add(post)
+        db.session.commit()
+        return redirect(request.url)
+    return render_template('index.html', form=form, posts=posts, pagination=pagination)
 
 
 @main.route('/profile/<username>')

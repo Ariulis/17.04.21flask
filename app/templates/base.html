@@ -24,6 +24,7 @@
             {% include '_messages.html' %}
             {% block content %}{% endblock content %}
         </main>
+        {% block pagination %}{% endblock pagination %}
     </div>
     {% block scripts %}
         <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"

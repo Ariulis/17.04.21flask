@@ -1,6 +1,6 @@
 {% macro forms(form) %}
-    <form class="form" method="POST">
-        {% set simple_inputs, checkbox_inputs = ['role', 'name', 'location', 'about_me', 'username', 'email', 'password', 'password2', 'new_password'], ['remember_me', 'confirmed'] %}
+    <form class="form mb-4" method="POST">
+        {% set simple_inputs, checkbox_inputs = ['body', 'role', 'name', 'location', 'about_me', 'username', 'email', 'password', 'password2', 'new_password'], ['remember_me', 'confirmed'] %}
         {% for field in form %}
             {% if field.name in simple_inputs %}
                 <div class="form-group">

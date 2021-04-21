@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, TextAreaField, SelectField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Length, Email, Regexp
+from flask_ckeditor import CKEditorField
 
 from ..models import User, Role
 
@@ -39,3 +40,8 @@ class EditProfileForm(FlaskForm):
     location = StringField('Location', validators=[Length(0, 32)])
     about_me = TextAreaField('About me')
     submit = SubmitField('Change profile')
+
+
+class PostForm(FlaskForm):
+    body = CKEditorField('What is on your mind?', validators=[DataRequired()])
+    submit = SubmitField('Save')

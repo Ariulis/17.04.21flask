@@ -38,3 +38,6 @@ h2,
 .badge {
   padding: 8px;
 }
+.index-page .form {
+  display: none;
+}

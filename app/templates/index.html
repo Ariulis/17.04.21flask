@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% import '_macros.html' as macros %}
 
 {% block title %}
     {{ super() }} - Index page
@@ -7,4 +8,18 @@
 {% block content %}
     <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
     <hr>
+    <div class="row justify-content-center">
+        <div class="col-6 index-page">
+            {% if current_user.can(Permission.WRITE) %}
+                {{ macros.forms(form) }}
+                <button class="btn btn-info add-post-btn mb-4">Add a post</button>
+            {% endif %}
+            {% include '_posts.html' %}
+        </div>
+    </div>
 {% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+    {{ ckeditor.load() }}
+{% endblock scripts %}
