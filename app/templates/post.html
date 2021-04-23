@@ -2,25 +2,26 @@
 {% import '_macros.html' as macros %}
 
 {% block title %}
-    {{ super() }} - Index page
+    {{ super() }} - The post #{{ posts[0].id }}
 {% endblock title %}
 
 {% block content %}
-    <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
+    <h1>The post #{{ posts[0].id }}</h1>
     <hr>
     <div class="row justify-content-center">
-        <div class="col-6 index-page">
-            {% if current_user.can(Permission.WRITE) %}
-                {{ macros.forms(form) }}
-                <button class="btn btn-info add-post-btn mb-4">Add a post</button>
-            {% endif %}
+        <div class="col-6">
             {% include '_posts.html' %}
+            {% if current_user.can(Permission.COMMENT) %}
+                <h2>Add a comment:</h2>
+                {{ macros.forms(form) }}
+            {% endif %}
+            {% include '_comments.html' %}
         </div>
     </div>
 {% endblock content %}
 
 {% block pagination %}
-    {{ macros.pagination_widget(pagination, '.index') }}
+    {{ macros.pagination_widget(pagination, '.post', id=posts[0].id, fragment='#comments') }}
 {% endblock pagination %}
 
 {% block scripts %}

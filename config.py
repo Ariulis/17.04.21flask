@@ -22,6 +22,7 @@ class Config:
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
 
     POSTS_PER_PAGE = 3
+    COMMENTS_PER_PAGE = 3
 
     @staticmethod
     def init_app(app):

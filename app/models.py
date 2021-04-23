@@ -36,6 +36,7 @@ class User(UserMixin, db.Model):
     avatar_hash = db.Column(db.String(32))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -242,6 +243,7 @@ class Post(db.Model):
     body = db.Column(db.Text())
     timestamp = db.Column(db.DateTime, default=datetime.now)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    comments = db.relationship('Comment', backref='post', lazy='dynamic')
 
     @staticmethod
     def generate_fake_posts(count=50):
@@ -258,6 +260,42 @@ class Post(db.Model):
                 author=u
             )
             db.session.add(p)
+        db.session.commit()
+
+    def __repr__(self):
+        if len(self.body) > 30:
+            return f'{self.body[:30]}...'
+        return self.body
+
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text())
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+    disabled = db.Column(db.Boolean(), default=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+
+    @staticmethod
+    def generate_fake_comments(count=250):
+        import forgery_py
+        from random import randint
+
+        users_count = User.query.count()
+        posts_count = Post.query.count()
+
+        for i in range(count):
+            u = User.query.offset(randint(0, users_count - 1)).first()
+            p = Post.query.offset(randint(0, posts_count - 1)).first()
+            c = Comment(
+                body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
+                timestamp=forgery_py.date.date(True),
+                disabled=False,
+                author=u,
+                post=p
+            )
+            db.session.add(c)
         db.session.commit()
 
     def __repr__(self):

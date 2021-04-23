@@ -12,10 +12,17 @@ const bootstrapColors = [
 const postForm = document.querySelector(".index-page .form");
 const addPostButton = document.querySelector(".add-post-btn");
 
-addPostButton.addEventListener("click", function () {
-  this.style.display = "none";
-  postForm.style.display = "block";
-});
+if (addPostButton) {
+  addPostButton.addEventListener("click", function () {
+    if (this.innerText === "Add a post") {
+      this.innerText = "Cancel";
+      postForm.style.display = "block";
+    } else {
+      this.innerText = "Add a post";
+      postForm.style.display = "none";
+    }
+  });
+}
 
 preloader
   .querySelector(".spinner-border")

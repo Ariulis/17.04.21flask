@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as macros %}
+
+{% block title %}
+    {{ super() }} - Edit post #{{ id }}
+{% endblock title %}
+
+{% block content %}
+    <h1>Edit post #{{ id }}</h1>
+    <hr>
+    <div class="row justify-content-center">
+        <div class="col-6">
+            {{ macros.forms(form) }}
+        </div>
+    </div>
+{% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+    {{ ckeditor.load() }}
+{% endblock scripts %}

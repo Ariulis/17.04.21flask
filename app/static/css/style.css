@@ -41,3 +41,7 @@ h2,
 .index-page .form {
   display: none;
 }
+.pagination {
+  margin: 0 auto;
+  padding-bottom: 20px;
+}

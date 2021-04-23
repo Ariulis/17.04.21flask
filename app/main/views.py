@@ -2,10 +2,10 @@ from flask import render_template, flash, redirect, url_for, request, current_ap
 from flask_login import login_required, current_user
 
 from . import main
-from .forms import EditProfileForm, EditAdminProfileForm, PostForm
+from .forms import EditProfileForm, EditAdminProfileForm, PostForm, CommentForm
 from .. import db
-from ..models import User, Role, Post, Permission
-from ..decorators import admin_required
+from ..models import User, Role, Post, Permission, Comment
+from ..decorators import admin_required, permission_required
 
 
 @main.route('/', methods=['GET', 'POST'])
@@ -31,7 +31,12 @@ def index():
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    return render_template('user.html', user=user)
+    page = request.args.get('page', 1, type=int)
+    pagination = user.posts.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=current_app.config['POSTS_PER_PAGE']
+    )
+    posts = pagination.items
+    return render_template('user.html', user=user, posts=posts, pagination=pagination)
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])
@@ -78,3 +83,76 @@ def edit_admin_profile(id):
     form.location.data = user.location
     form.about_me.data = user.about_me
     return render_template('edit_profile.html', form=form, username=user.username)
+
+
+@main.route('/post/<int:id>', methods=['GET', 'POST'])
+def post(id):
+    post = Post.query.get_or_404(id)
+    form = CommentForm()
+    if form.validate_on_submit():
+        new_comment = Comment(
+            body=form.body.data,
+            author=current_user._get_current_object()
+        )
+        db.session.add(new_comment)
+        db.session.commit()
+        flash('A new comment has been published.', 'info')
+        return redirect(url_for('main.post', id=post.id, page=-1))
+    page = request.args.get('page', 1, type=int)
+    if page == -1:
+        page = (post.comments.count() - 1) / \
+            current_app.config['COMMENTS_PER_PAGE'] + 1
+    pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(
+        page, per_page=current_app.config['COMMENTS_PER_PAGE']
+    )
+    comments = pagination.items
+    return render_template('post.html', posts=[post], comments=comments, form=form, pagination=pagination)
+
+
+@main.route('/edit-post/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_post(id):
+    post = Post.query.get_or_404(id)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.body = form.body.data
+        db.session.add(post)
+        db.session.commit()
+        flash('The post has been edited.', 'info')
+        return redirect(url_for('main.post', id=post.id))
+    form.body.data = post.body
+    return render_template('edit_post.html', form=form, id=post.id)
+
+
+@main.route('/moderate')
+@login_required
+@permission_required(Permission.MODERATE)
+def moderate():
+    page = request.args.get('page', 1, type=int)
+    pagination = Comment.query.order_by(Comment.disabled.asc()).paginate(
+        page, per_page=current_app.config['COMMENTS_PER_PAGE']
+    )
+    comments = pagination.items
+    return render_template('moderate.html', comments=comments, pagination=pagination, page=page)
+
+
+@main.route('/comment-enable/<int:id>')
+@login_required
+@permission_required(Permission.COMMENT)
+def comment_enable(id):
+    comment = Comment.query.get_or_404(id)
+    comment.disabled = False
+    db.session.add(comment)
+    db.session.commit()
+    return redirect(url_for('main.moderate', page=request.args.get('page', 1, type=int)))
+
+
+@main.route('/comment-disable/<int:id>')
+@login_required
+@permission_required(Permission.COMMENT)
+def comment_disable(id):
+    comment = Comment.query.get_or_404(id)
+    comment.disabled = True
+    db.session.add(comment)
+    db.session.commit()
+    return redirect(url_for('main.moderate', page=request.args.get('page', 1, type=int)))

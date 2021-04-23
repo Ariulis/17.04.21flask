@@ -7,7 +7,19 @@
             </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item">{{ post.body | safe }}</li>
-                <li class="list-group-item"><a href="" class="badge badge-primary">Permalink</a></li>
+                <li class="list-group-item">
+                    {% if not 'post' in request.path %}
+                        <a href="{{ url_for('main.post', id=post.id) }}" class="badge badge-primary">Permalink</a>
+                    {% endif %}
+                    {% if current_user == post.author %}
+                        <a href="{{ url_for('main.edit_post', id=post.id) }}" class="badge badge-info">Edit post</a>                        
+                    {% elif current_user.is_administrator() %}
+                        <a href="{{ url_for('main.edit_post', id=post.id) }}" class="badge badge-danger">Edit [admin] post</a>                            
+                    {% endif %}
+                    {% if post.comments %}
+                        <a href="{{ url_for('main.post', id=post.id) }}#comments" class="badge badge-warning">{{ post.comments.count() }} comments</a>
+                    {% endif %}
+                </li>
             </ul>
         </div>
     {% endfor %}
