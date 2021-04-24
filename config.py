@@ -23,6 +23,7 @@ class Config:
 
     POSTS_PER_PAGE = 3
     COMMENTS_PER_PAGE = 3
+    FOLLOWERS_PER_PAGE = 3
 
     @staticmethod
     def init_app(app):
